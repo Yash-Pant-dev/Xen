@@ -36,7 +36,7 @@ func parse(input string) {
 
 	switch elements[0] {
 	case "r": // run interpreter
-		xeni.OrchestrateStages(elements[1:])
+		xeni.OrchestratePhases(elements[1:])
 	default:
 		panic(fmt.Sprintf("[%v]", E_CLTool_UnknownOperation))
 	}

@@ -26,6 +26,6 @@ func TestAllSourceFiles(t *testing.T) {
 			}
 		}()
 		params := [1]string{testDir + "/" + examplesDir + "/" + file.Name()}
-		xeni.OrchestrateStages(params[:])
+		xeni.OrchestratePhases(params[:])
 	}
 }

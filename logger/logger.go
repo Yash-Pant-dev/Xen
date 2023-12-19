@@ -1,12 +1,13 @@
-package xeni
+package logger
 
 import (
 	"fmt"
 	"os"
 )
 
-const logs_file_name = "xeni_logs.log"
-const metrics_file_name = "xeni_metrics.log"
+var logsFileName string
+var metricsFileName string
+var debugMode bool
 
 var logs *os.File = nil
 var metrics *os.File = nil
@@ -14,11 +15,13 @@ var metrics *os.File = nil
 /*
 Severity description:
 0 - Debug, Log file only.
-1 - Debug, Log file + Terminal
-2 - Metrics
-3 - Warnings
-4 - Errors
-5 - Errors with immediate fatality
+1 - Debug, Log file + Terminal.
+2 - Metrics.
+3 - Warnings.
+4 - Errors.
+5 - Errors with immediate fatality.
+
+Safe for use even if the logs file cannot be opened.
 */
 func Log(severity int, messages ...any) {
 
@@ -30,8 +33,10 @@ func Log(severity int, messages ...any) {
 			logs.WriteString(joinedMessage)
 		}
 	case 1:
-		if debugMode && logs != nil {
-			logs.WriteString(joinedMessage)
+		if debugMode {
+			if logs != nil {
+				logs.WriteString(joinedMessage)
+			}
 			fmt.Print(joinedMessage)
 		}
 	case 2:
@@ -60,22 +65,28 @@ func Log(severity int, messages ...any) {
 	}
 }
 
-func initializeLogging() {
+func InitializeLogging(pdebugMode bool, plogsFileName, pmetricsFileName string) func(int, ...any) {
+
+	debugMode = pdebugMode
+	logsFileName = plogsFileName
+	metricsFileName = pmetricsFileName
 
 	var errLogger, errMetrics error
 
-	logs, errLogger = os.OpenFile(logs_file_name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logs, errLogger = os.OpenFile(logsFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if errLogger != nil {
-		fmt.Println("Cannot open logs file [", logs_file_name, "]")
+		fmt.Println("Cannot open logs file [", logsFileName, "]")
 		logs = nil
 	} else {
 		Log(0, "")
 		Log(1, "Logger initialized.")
 	}
 
-	metrics, errMetrics = os.OpenFile(metrics_file_name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	metrics, errMetrics = os.OpenFile(metricsFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if errMetrics != nil {
-		Log(3, "Cannot open metrics file [", metrics_file_name, "]")
+		Log(3, "Cannot open metrics file [", metricsFileName, "]")
 		metrics = nil
 	}
+
+	return Log
 }
